@@ -4,8 +4,8 @@
   "description": "Tool which helps developers to manage color schemas in projects by gathering and representing all colors in project files.",
   "main": "lib/index.js",
   "scripts": {
-    "docs": "npx typedoc --out docs ./src",
-    "test:eslint": "npx eslint src",
+    "docs": "npx typedoc --out ./docs ./src",
+    "test:eslint": "npx eslint ./src --ext=js,ts",
     "test:jest": "npx jest",
     "test": "npm run test:eslint && npm run test:jest"
   },
@@ -27,6 +27,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^12.7.1",
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
     "eslint": "^6.1.0",
     "typedoc": "^0.15.0",
     "typescript": "^3.5.3"

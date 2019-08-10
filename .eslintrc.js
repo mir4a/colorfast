@@ -3,21 +3,23 @@ module.exports = {
     "es6": true,
     "node": true
   },
-  "extends": "eslint:recommended",
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "eslint:recommended"
+  ],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
   },
+  "parser":  "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module"
   },
   "rules": {
     "curly": "error",
-    "indent": [
-      "error",
-      2
-    ],
+    "indent": "off",
+    "@typescript-eslint/indent": ["error", 2],
     "padding-line-between-statements": [
       "error",
       { blankLine: "always", prev: "*", next: "return" },
