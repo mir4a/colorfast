@@ -4,7 +4,9 @@
   "description": "Tool which helps developers to manage color schemas in projects by gathering and representing all colors in project files.",
   "main": "lib/index.js",
   "scripts": {
-    "test": "npm run test"
+    "test:eslint": "./node_modules/.bin/eslint src",
+    "test:jest": "./node_modules/.bin/jest",
+    "test": "npm run test:eslint && npm run test:jest"
   },
   "keywords": [
     "colors",
