@@ -1,0 +1,28 @@
+{
+  "name": "colorfast",
+  "version": "0.0.0",
+  "description": "Tool which helps developers to manage color schemas in projects by gathering and representing all colors in project files.",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "keywords": [
+    "colors",
+    "colours",
+    "color",
+    "colour",
+    "sass",
+    "scss",
+    "developer",
+    "tool",
+    "design",
+    "styles",
+    "css",
+    "algorithms"
+  ],
+  "author": "Miroslav Martynov",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^6.1.0"
+  }
+}
