@@ -4,21 +4,21 @@ const fs = require("fs");
 const path = require("path");
 
 const colorRegexp: RegExp = /(#[A-F\d]{3}\b|#[A-F\d]{6}\b)|(rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?([, \.\d]+)?\))/gi; // eslint-disable-line
-const sassVariableRegexp: RegExp = /(\$[\S\d]+)\b/gi;
+const sassVariableRegexp = /(\$[\S\d]+)\b/gi;
 let colorMap: ColorMap;
-let fileCounter: number = 0;
+let fileCounter = 0;
 
 interface ColorMeta {
-  alpha?: number,
-  filePath: string,
-  originalValue: string,
-  startPos: number,
-  xPath: string,
-};
+  alpha?: number;
+  filePath: string;
+  originalValue: string;
+  startPos: number;
+  xPath: string;
+}
 
 interface ColorData {
-  index: number,
-  meta: Array<ColorMeta>,
+  index: number;
+  meta: ColorMeta[];
 }
 
 type ColorMap = Map<string, ColorData>;
@@ -30,9 +30,9 @@ type ColorMap = Map<string, ColorData>;
  */
 function parseStylesheetsColors(data: string, filePath: string, map: ColorMap) {
   const lines = data.split("\n");
-  let result: Array<string> = [];
+  let result: string[] = [];
   let test: RegExpExecArray;
-  let totalReadData: number = 0;
+  let totalReadData = 0;
 
   for (let i = 0, len = lines.length; i < len; i++) {
     let lineStr = `${filePath}:${i+1}:`;
@@ -64,11 +64,11 @@ function parseStylesheetsColors(data: string, filePath: string, map: ColorMap) {
  * Search for colors in color scheme and prepare data output for view
  * @return Array of objects { color: , variable: }
  */
-function parseColorSheme(data: string): Array<Object> {
-  let result: Array<Object> = [];
+function parseColorSheme(data: string): Record<string, any>[] {
+  let result: Record<string, any>[] = [];
   let test: RegExpExecArray;
   let variable: RegExpExecArray;
-  const lines: Array<string> = data.split("\n");
+  const lines: string[] = data.split("\n");
 
   for (var i = 0, len = lines.length; i < len; i++) {
     // FIXME: Find out how to extract alpha channel
@@ -139,7 +139,7 @@ function pathType(path: string): string | undefined {
  * @param skip fullpath to the color scheme file _for example colors.sass with all color variables_
  */
 function processDir(path: string, skip: string) {
-  let files: Array<string> = [];
+  let files: string[] = [];
 
   if (Array.isArray(path)) {
     for (let el of path) {
@@ -158,7 +158,7 @@ function processDir(path: string, skip: string) {
  * @param dir 
  * @param skip fullpath to the color scheme file _for example colors.sass with all color variables_
  */
-function main(files: Array<string>, dir: string, skip: string) {
+function main(files: string[], dir: string, skip: string) {
 
   for (let file of files) {
     let filePath = path.resolve(dir, file);
@@ -205,7 +205,7 @@ function countAndPrintProcessedFiles(filePath, colors) {
  * @param dir directory for colors scanning
  * @param skip fullpath to the color scheme file _for example colors.sass with all color variables_
  */
-function mainHandler(dir, skip: string): Map<string, Object> {
+function mainHandler(dir, skip: string): Map<string, Record<string, any>> {
   colorMap = new Map();
 
   const start: Date = new Date();
