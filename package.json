@@ -4,8 +4,9 @@
   "description": "Tool which helps developers to manage color schemas in projects by gathering and representing all colors in project files.",
   "main": "lib/index.js",
   "scripts": {
-    "test:eslint": "./node_modules/.bin/eslint src",
-    "test:jest": "./node_modules/.bin/jest",
+    "docs": "npx typedoc --out docs ./src",
+    "test:eslint": "npx eslint src",
+    "test:jest": "npx jest",
     "test": "npm run test:eslint && npm run test:jest"
   },
   "keywords": [
@@ -25,6 +26,9 @@
   "author": "Miroslav Martynov",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^6.1.0"
+    "@types/node": "^12.7.1",
+    "eslint": "^6.1.0",
+    "typedoc": "^0.15.0",
+    "typescript": "^3.5.3"
   }
 }

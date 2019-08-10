@@ -2,24 +2,37 @@
 
 const fs = require("fs");
 const path = require("path");
-const colorRegexp = /(#[A-F\d]{3}\b|#[A-F\d]{6}\b)|(rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?([, \.\d]+)?\))/gi; // eslint-disable-line
-const sassVariableRegexp = /(\$[\S\d]+)\b/gi;
-let colorMap;
-let fileCounter = 0;
+
+const colorRegexp: RegExp = /(#[A-F\d]{3}\b|#[A-F\d]{6}\b)|(rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?([, \.\d]+)?\))/gi; // eslint-disable-line
+const sassVariableRegexp: RegExp = /(\$[\S\d]+)\b/gi;
+let colorMap: ColorMap;
+let fileCounter: number = 0;
+
+interface ColorMeta {
+  alpha?: number,
+  filePath: string,
+  originalValue: string,
+  startPos: number,
+  xPath: string,
+};
+
+interface ColorData {
+  index: number,
+  meta: Array<ColorMeta>,
+}
+
+type ColorMap = Map<string, ColorData>;
 
 
 /**
  * Search for colors in stylesheets, add them into color map
- * @param  {[type]} data     [description]
- * @param  {[type]} filePath [description]
- * @param  {[type]} map      [description]
- * @return {[type]}          Array of colors
+ * @return {Array}          Array of colors
  */
-function parseStylesheetsColors(data, filePath, map) {
+function parseStylesheetsColors(data: string, filePath: string, map: ColorMap) {
   const lines = data.split("\n");
-  let result = [];
-  let test;
-  let totalReadData = 0;
+  let result: Array<string> = [];
+  let test: RegExpExecArray;
+  let totalReadData: number = 0;
 
   for (let i = 0, len = lines.length; i < len; i++) {
     let lineStr = `${filePath}:${i+1}:`;
@@ -28,7 +41,7 @@ function parseStylesheetsColors(data, filePath, map) {
 
     while (test = colorRegexp.exec(lines[i])) {
       // FIXME: Find out how to extract alpha channel
-      let colorData = {
+      let colorData: ColorMeta = {
         alpha: 1,
         filePath: filePath,
         originalValue: test[0],
@@ -40,6 +53,7 @@ function parseStylesheetsColors(data, filePath, map) {
       result.push(test[0]);
     }
   }
+
   console.log(`totalReadData: ${totalReadData}, data.length: ${data.length}`);
 
   return result;
@@ -48,14 +62,13 @@ function parseStylesheetsColors(data, filePath, map) {
 
 /**
  * Search for colors in color scheme and prepare data output for view
- * @param  {[type]} data     [description]
- * @return {[type]}          Array of objects { color: , variable: }
+ * @return Array of objects { color: , variable: }
  */
-function parseColorSheme(data) {
-  var result = [];
-  var test;
-  var variable;
-  var lines = data.split("\n");
+function parseColorSheme(data: string): Array<Object> {
+  let result: Array<Object> = [];
+  let test: RegExpExecArray;
+  let variable: RegExpExecArray;
+  const lines: Array<string> = data.split("\n");
 
   for (var i = 0, len = lines.length; i < len; i++) {
     // FIXME: Find out how to extract alpha channel
@@ -72,13 +85,18 @@ function parseColorSheme(data) {
   return result;
 }
 
-
-function addToMap(color, colorData, map) {
+/**
+ * Mutate global map of colors
+ * @param color Long variant of color
+ * @param colorData All color metadata
+ * @param map Global mutable map
+ */
+function addToMap(color: string, colorData: ColorMeta, map: ColorMap): ColorMap {
   var normalizedColor = color.toLowerCase();
   var longColor = convertShortHEXtoLong(normalizedColor);
 
   if (map.has(longColor)) {
-    let val = map.get(longColor);
+    const val: ColorData = map.get(longColor);
 
     val.meta.push(colorData);
     val.index = getColorIndex(longColor);
@@ -97,9 +115,12 @@ function addToMap(color, colorData, map) {
   return map;
 }
 
-function pathType(path) {
-  var stat = fs.statSync(path);
-  var type;
+/**
+ * Checks whether path related to file, directory or undefined
+ */
+function pathType(path: string): string | undefined {
+  const stat = fs.statSync(path);
+  let type: string | undefined;
 
   if (stat.isFile()) {
     type = "FILE";
@@ -112,8 +133,13 @@ function pathType(path) {
   return type;
 }
 
-function processDir(path, skip) {
-  let files = [];
+/**
+ * Processes directory at given path, collects file names and run main script recursively
+ * @param path to
+ * @param skip fullpath to the color scheme file _for example colors.sass with all color variables_
+ */
+function processDir(path: string, skip: string) {
+  let files: Array<string> = [];
 
   if (Array.isArray(path)) {
     for (let el of path) {
@@ -126,7 +152,13 @@ function processDir(path, skip) {
   }
 }
 
-function main(files, dir, skip) {
+/**
+ * Processes given files
+ * @param files 
+ * @param dir 
+ * @param skip fullpath to the color scheme file _for example colors.sass with all color variables_
+ */
+function main(files: Array<string>, dir: string, skip: string) {
 
   for (let file of files) {
     let filePath = path.resolve(dir, file);
@@ -168,11 +200,16 @@ function countAndPrintProcessedFiles(filePath, colors) {
   return fileCounter;
 }
 
-function mainHandler(dir, skip) {
+/**
+ * Basically the gathering function runner which __mutate__ global `colorMap`
+ * @param dir directory for colors scanning
+ * @param skip fullpath to the color scheme file _for example colors.sass with all color variables_
+ */
+function mainHandler(dir, skip: string): Map<string, Object> {
   colorMap = new Map();
 
-  var start = new Date();
-  var end, diff;
+  const start: Date = new Date();
+  let end: Date, diff: number;
   let dirType = pathType(dir);
 
   if (dirType === "FILE") {
@@ -180,10 +217,12 @@ function mainHandler(dir, skip) {
   } else {
     processDir(dir, skip);
   }
+
   end = new Date();
-  diff = end - start;
-  console.log(`Finished for ${diff}ms, found ${colorMap.size} colors`);
+  diff = end.getTime() - start.getTime();
   fileCounter = 0;
+
+  console.log(`Finished for ${diff}ms, found ${colorMap.size} colors`);
 
   return colorMap;
 }
@@ -193,10 +232,10 @@ function mainHandler(dir, skip) {
  * @param map
  * @returns {string}
  */
-function generateMarkup(map) {
-  // var colors = "";
-  var sortedColors = insertionSortForColors([...map.keys()], map);
-  var html = "";
+function generateMarkup(map: ColorMap) {
+  const keys: Iterator<string> = map.keys();
+  const sortedColors = insertionSortForColors(keys);
+  let html = "";
 
   sortedColors.forEach((val)=>{
     let title = "";
