@@ -26,9 +26,12 @@ type ColorMap = Map<string, ColorData>;
 
 /**
  * Search for colors in stylesheets, add them into color map
- * @return {Array}          Array of colors
+ * @param data content of the given file
+ * @param filePath full path to the given file
+ * @param map __global__ mutable color map
+ * @return  Array of colors
  */
-function parseStylesheetsColors(data: string, filePath: string, map: ColorMap) {
+function parseStylesheetsColors(data: string, filePath: string, map: ColorMap): Array<string> {
   const lines = data.split("\n");
   let result: string[] = [];
   let test: RegExpExecArray;
