@@ -1,7 +1,7 @@
 "use strict";
 
-const fs = require("fs");
-const path = require("path");
+import fs = require("fs");
+import path = require("path");
 
 const colorRegexp: RegExp = /(#[A-F\d]{3}\b|#[A-F\d]{6}\b)|(rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?([, \.\d]+)?\))/gi; // eslint-disable-line
 const sassVariableRegexp = /(\$[\S\d]+)\b/gi;
@@ -24,68 +24,49 @@ interface ColorData {
 type ColorMap = Map<string, ColorData>;
 
 
-/**
- * Search for colors in stylesheets, add them into color map
- * @param data content of the given file
- * @param filePath full path to the given file
- * @param map __global__ mutable color map
- * @return  Array of colors
- */
-function parseStylesheetsColors(data: string, filePath: string, map: ColorMap): Array<string> {
-  const lines = data.split("\n");
-  let result: string[] = [];
-  let test: RegExpExecArray;
-  let totalReadData = 0;
+function convertShortHEXtoLong(hex) {
+  var tmp = "";
 
-  for (let i = 0, len = lines.length; i < len; i++) {
-    let lineStr = `${filePath}:${i+1}:`;
-
-    totalReadData += lines[i].length + 1;
-
-    while (test = colorRegexp.exec(lines[i])) {
-      // FIXME: Find out how to extract alpha channel
-      let colorData: ColorMeta = {
-        alpha: 1,
-        filePath: filePath,
-        originalValue: test[0],
-        startPos: totalReadData - (lines[i].length - test.index) - 1,
-        xPath: lineStr + (test.index + 1),
-      };
-
-      addToMap(test[0], colorData, map);
-      result.push(test[0]);
-    }
+  if (hex && hex.length === 4) {
+    tmp = hex[0] + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+  } else if (!hex) {
+    return "#000000";
+  } else {
+    tmp = hex;
   }
 
-  console.log(`totalReadData: ${totalReadData}, data.length: ${data.length}`);
-
-  return result;
+  return tmp;
 }
 
+function getHEXValue(hex) {
+  var bytes = hex.slice(1);
+  var value = parseInt(bytes, 16);
 
-/**
- * Search for colors in color scheme and prepare data output for view
- * @return Array of objects { color: , variable: }
- */
-function parseColorSheme(data: string): Record<string, any>[] {
-  let result: Record<string, any>[] = [];
-  let test: RegExpExecArray;
-  let variable: RegExpExecArray;
-  const lines: string[] = data.split("\n");
+  return isNaN(value) ? 0 : value;
+}
 
-  for (var i = 0, len = lines.length; i < len; i++) {
-    // FIXME: Find out how to extract alpha channel
-    while (test = colorRegexp.exec(lines[i])) {
-      while (variable = sassVariableRegexp.exec(lines[i])) {
-        result.push({
-          color: test[0],
-          variable: variable[0]
-        });
-      }
-    }
+function rgb2hex(rgb){
+  rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+
+  return (rgb && rgb.length === 4) ? "#" +
+  ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+  ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
+  ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : "";
+}
+
+function getColorIndex(color) {
+  var index, hex;
+
+  if (color && color[0] === "#") {
+    index = getHEXValue(color);
+  } else if (!color) {
+    return 0;
+  } else {
+    hex = rgb2hex(color);
+    index = getHEXValue(hex);
   }
 
-  return result;
+  return index;
 }
 
 /**
@@ -118,6 +99,153 @@ function addToMap(color: string, colorData: ColorMeta, map: ColorMap): ColorMap 
   return map;
 }
 
+function compareTwoColorIndex( colorA, colorB ) {
+  // console.log(`arA = ${arA}; arB = ${arB}`);
+  var indexA = colorMap.get(colorA);
+  var indexB = colorMap.get(colorB);
+
+  if (indexA && indexB) {
+    return (indexA.index - indexB.index) < 0;
+  } else {
+    return;
+  }
+}
+
+// /**
+//  * Compare two numeric values
+//  * @param a
+//  * @param b
+//  * @returns {boolean}
+//  */
+// function compareTwoNumbers( a, b ) {
+//   return (a - b) > 0;
+// }
+
+/**
+ * Swap tow elements in array
+ * @param arr
+ * @param posA
+ * @param posB
+ */
+function swap( arr, posA, posB ) {
+  var temp = arr[posA];
+
+  arr[posA] = arr[posB];
+  arr[posB] = temp;
+}
+
+
+// /**
+//  * Returns new sorted array using Insertion Sort Algorithm
+//  * @param arr
+//  * @returns {Array|number}
+//  */
+// function insertionSort( array ) {
+//   var arr = array.slice();
+
+//   for (var i = 1; i <= arr.length; i++) {
+//     var currentPos = i;
+
+//     while (currentPos > 0 && compareTwoNumbers(parseInt(arr[currentPos - 1]), parseInt(arr[currentPos]))) {
+//       swap(arr, currentPos, currentPos - 1);
+//       currentPos -= 1;
+//     }
+//   }
+
+//   return arr;
+// }
+
+
+/**
+ * Returns new sorted array using Insertion Sort Algorithm
+ * @param arr
+ * @returns {Array|number}
+ */
+function insertionSortForColors( array ) {
+  // console.log(array);
+  var arr = array.slice();
+
+  for (var i = 1; i <= arr.length; i++) {
+    var currentPos = i;
+
+    while (currentPos > 0 && compareTwoColorIndex(arr[currentPos - 1], arr[currentPos])) {
+      swap(arr, currentPos, currentPos - 1);
+      currentPos -=1;
+    }
+  }
+
+  return arr;
+}
+
+/**
+ * Search for colors in stylesheets, add them into color map
+ * @param data content of the given file
+ * @param filePath full path to the given file
+ * @param map __global__ mutable color map
+ * @return  Array of colors
+ */
+function parseStylesheetsColors(data: string, filePath: string, map: ColorMap): string[] {
+  const lines = data.split("\n");
+  let result: string[] = [];
+  let test: RegExpExecArray;
+  let totalReadData = 0;
+
+  for (let i = 0, len = lines.length; i < len; i++) {
+    let lineStr = `${filePath}:${i+1}:`;
+
+    totalReadData += lines[i].length + 1;
+    test = colorRegexp.exec(lines[i]);
+
+    while (test) {
+      // FIXME: Find out how to extract alpha channel
+      let colorData: ColorMeta = {
+        alpha: 1,
+        filePath: filePath,
+        originalValue: test[0],
+        startPos: totalReadData - (lines[i].length - test.index) - 1,
+        xPath: lineStr + (test.index + 1),
+      };
+
+      addToMap(test[0], colorData, map);
+      result.push(test[0]);
+    }
+  }
+
+  console.log(`totalReadData: ${totalReadData}, data.length: ${data.length}`);
+
+  return result;
+}
+
+
+/**
+ * Search for colors in color scheme and prepare data output for view
+ * @return Array of objects { color: , variable: }
+ */
+function parseColorSheme(data: string): Record<string, any>[] {
+  let result: Record<string, any>[] = [];
+  let test: RegExpExecArray;
+  let variable: RegExpExecArray;
+  const lines: string[] = data.split("\n");
+
+  for (var i = 0, len = lines.length; i < len; i++) {
+    // FIXME: Find out how to extract alpha channel
+    test = colorRegexp.exec(lines[i]);
+
+    while (test) {
+      variable = sassVariableRegexp.exec(lines[i]);
+
+      while (variable) {
+        result.push({
+          color: test[0],
+          variable: variable[0]
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
 /**
  * Checks whether path related to file, directory or undefined
  */
@@ -147,12 +275,26 @@ function processDir(path: string, skip: string) {
   if (Array.isArray(path)) {
     for (let el of path) {
       files = fs.readdirSync(el);
-      main(files, el, skip);
+      main(files, el, skip); // eslint-disable-line @typescript-eslint/no-use-before-define
     }
   } else {
     files = fs.readdirSync(path);
-    main(files, path, skip);
+    main(files, path, skip); // eslint-disable-line @typescript-eslint/no-use-before-define
   }
+}
+
+function countAndPrintProcessedFiles(filePath, colors) {
+  ++fileCounter;
+  console.log(`${fileCounter}: ${filePath} — found ${colors.length} colors`);
+
+  return fileCounter;
+}
+
+function processFile(filePath) {
+  let data = fs.readFileSync(filePath, "utf-8");
+  let colors = parseStylesheetsColors(data, filePath, colorMap);
+
+  countAndPrintProcessedFiles(filePath, colors);
 }
 
 /**
@@ -182,25 +324,12 @@ function main(files: string[], dir: string, skip: string) {
   }
 }
 
-function processFile(filePath) {
-  let data = fs.readFileSync(filePath, "utf-8");
-  let colors = parseStylesheetsColors(data, filePath, colorMap);
-
-  countAndPrintProcessedFiles(filePath, colors);
-}
 
 function handleScheme(filePath) {
   var data = fs.readFileSync(filePath, "utf-8");
   var scheme = parseColorSheme(data);
 
   return scheme;
-}
-
-function countAndPrintProcessedFiles(filePath, colors) {
-  ++fileCounter;
-  console.log(`${fileCounter}: ${filePath} — found ${colors.length} colors`);
-
-  return fileCounter;
 }
 
 /**
@@ -263,135 +392,6 @@ function generateMarkup(map: ColorMap) {
 
   return html;
 }
-
-
-function convertShortHEXtoLong(hex) {
-  var tmp = "";
-
-  if (hex && hex.length === 4) {
-    tmp = hex[0] + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
-  } else if (!hex) {
-    return "#000000";
-  } else {
-    tmp = hex;
-  }
-
-  return tmp;
-}
-
-function rgb2hex(rgb){
-  rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
-
-  return (rgb && rgb.length === 4) ? "#" +
-  ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
-  ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
-  ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : "";
-}
-
-
-/**
- * Compare two numeric values
- * @param a
- * @param b
- * @returns {boolean}
- */
-function compareTwoNumbers( a, b ) {
-  return (a - b) > 0;
-}
-
-function compareTwoColorIndex( colorA, colorB ) {
-  // console.log(`arA = ${arA}; arB = ${arB}`);
-  var indexA = colorMap.get(colorA);
-  var indexB = colorMap.get(colorB);
-
-  if (indexA && indexB) {
-    return (indexA.index - indexB.index) < 0;
-  } else {
-    return;
-  }
-}
-
-/**
- * Swap tow elements in array
- * @param arr
- * @param posA
- * @param posB
- */
-function swap( arr, posA, posB ) {
-  var temp = arr[posA];
-
-  arr[posA] = arr[posB];
-  arr[posB] = temp;
-}
-
-
-/**
- * Returns new sorted array using Insertion Sort Algorithm
- * @param arr
- * @returns {Array|number}
- */
-function insertionSort( array ) {
-  var arr = array.slice();
-
-  for (var i = 1; i <= arr.length; i++) {
-    var currentPos = i;
-
-    while (currentPos > 0 && compareTwoNumbers(parseInt(arr[currentPos - 1]), parseInt(arr[currentPos]))) {
-      swap(arr, currentPos, currentPos - 1);
-      currentPos -= 1;
-    }
-  }
-
-  return arr;
-}
-
-
-/**
- * Returns new sorted array using Insertion Sort Algorithm
- * @param arr
- * @returns {Array|number}
- */
-function insertionSortForColors( array ) {
-  // console.log(array);
-  var arr = array.slice();
-
-  for (var i = 1; i <= arr.length; i++) {
-    var currentPos = i;
-
-    while (currentPos > 0 && compareTwoColorIndex(arr[currentPos - 1], arr[currentPos])) {
-      swap(arr, currentPos, currentPos - 1);
-      currentPos -=1;
-    }
-  }
-
-  return arr;
-}
-
-
-
-function getColorIndex(color) {
-  var index, hex;
-
-  if (color && color[0] === "#") {
-    index = getHEXValue(color);
-  } else if (!color) {
-    return 0;
-  } else {
-    hex = rgb2hex(color);
-    index = getHEXValue(hex);
-  }
-
-  return index;
-}
-
-function getHEXValue(hex) {
-  var bytes = hex.slice(1);
-  var value = parseInt(bytes, 16);
-
-  return isNaN(value) ? 0 : value;
-}
-
-
 
 module.exports = {
   gather: mainHandler,
