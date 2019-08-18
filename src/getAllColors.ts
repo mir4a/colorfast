@@ -1,7 +1,6 @@
-"use strict";
-
-import fs = require("fs");
-import path = require("path");
+import fs from "fs";
+import path from "path";
+import { getHEXValue, convertShortHEXtoLong, rgb2hex } from "./hexHelpers";
 
 const colorRegexp: RegExp = /(#[A-F\d]{3}\b|#[A-F\d]{6}\b)|(rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?([, \.\d]+)?\))/gi; // eslint-disable-line
 const sassVariableRegexp = /(\$[\S\d]+)\b/gi;
@@ -28,55 +27,6 @@ interface SchemeData {
   variable: string;
 }
 
-
-/**
- * @param hex color in HEX format
- * @return long HEX format or fallback to black if hex is not defined
- * or to hex if it seems already to be in long format
- */
-function convertShortHEXtoLong(hex?: string): string {
-  let result = "";
-
-  if (hex && hex.length === 4) {
-    result = hex[0] + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
-  } else if (!hex) {
-    return "#000000";
-  } else {
-    result = hex;
-  }
-
-  return result;
-}
-
-/**
- * Retrieve number from HEXademical color _long_ format
- * which could be useful for sorting
- * @param hex color in _long_ HEX format
- * @returns number from 0 to 16777215
- */
-function getHEXValue(hex: string): number {
-  const bytes = hex.slice(1);
-  const value = parseInt(bytes, 16);
-
-  return isNaN(value) ? 0 : value;
-}
-
-/**
- * Convert RGB to HEX
- * @param rgb color in RGB format
- * @returns color in HEX format or empty string if color is not matching RGBA pattern
- */
-function rgb2hex(rgb: string): string {
-  const rgbRegExp = /^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i;
-  const result = rgb.match(rgbRegExp);
-
-  return (result && rgb.length === 4) 
-    ? "#" +
-      ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
-      ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
-      ("0" + parseInt(rgb[3],10).toString(16)).slice(-2)
-    : "";
-}
 
 /**
  * Resolve color format and get it's value as natural numbers
@@ -127,22 +77,6 @@ function addToMap(color: string, colorData: ColorMeta, map: ColorMap): ColorMap 
   return map;
 }
 
-// /**
-//  * __DEPRECATED__ Use [[compareTwoNumbers]]
-//  * @param colorA in _long_ HEX format
-//  * @param colorB in _long_ HEX format
-//  */
-// function compareTwoColorIndex( colorA: string, colorB: string ): boolean {
-//   var indexA = colorMap.get(colorA);
-//   var indexB = colorMap.get(colorB);
-
-//   if (indexA && indexB) {
-//     return (indexA.index - indexB.index) < 0;
-//   } else {
-//     return;
-//   }
-// }
-
 /**
  * Compare two numeric values
  * @param a number
@@ -152,41 +86,6 @@ function addToMap(color: string, colorData: ColorMeta, map: ColorMap): ColorMap 
 function compareTwoNumbers( a: number, b: number ): boolean {
   return (a - b) > 0;
 }
-
-// /**
-//  * Swap tow elements in array
-//  * @param arr
-//  * @param posA
-//  * @param posB
-//  */
-// function swap( arr, posA, posB ) {
-//   var temp = arr[posA];
-
-//   arr[posA] = arr[posB];
-//   arr[posB] = temp;
-// }
-
-
-// /**
-//  * Returns new sorted array using Insertion Sort Algorithm
-//  * @param arr
-//  * @returns {Array|number}
-//  */
-// function insertionSort( array ) {
-//   var arr = array.slice();
-
-//   for (var i = 1; i <= arr.length; i++) {
-//     var currentPos = i;
-
-//     while (currentPos > 0 && compareTwoNumbers(parseInt(arr[currentPos - 1]), parseInt(arr[currentPos]))) {
-//       swap(arr, currentPos, currentPos - 1);
-//       currentPos -= 1;
-//     }
-//   }
-
-//   return arr;
-// }
-
 
 /**
  * Sort array of colors using Insertion Sort Algorithm
@@ -429,7 +328,7 @@ function generateMarkup(map: ColorMap): string {
 
   sortedColors.forEach((val): void => {
     let title = "";
-    const data = map.get(val)
+    const data = map.get(val);
     let index = data ? data.index : 0;
     let appearsCounter = 0;
     const meta = data && data.meta;
@@ -456,7 +355,7 @@ function generateMarkup(map: ColorMap): string {
   return html;
 }
 
-module.exports = {
+export default {
   gather: mainHandler,
   colorIndex: getColorIndex,
   sort: insertionSortForColors,

@@ -2,12 +2,13 @@
   "name": "colorfast",
   "version": "0.0.0",
   "description": "Tool which helps developers to manage color schemas in projects by gathering and representing all colors in project files.",
-  "main": "lib/index.js",
+  "main": "buld/index.js",
   "scripts": {
     "build": "npx tsc --outDir build",
     "docs": "npx typedoc --theme minimal --out ./docs ./src",
     "test:eslint": "npx eslint ./src --ext=js,ts",
     "test:jest": "npx jest",
+    "test:jest:coverage": "npx jest --coverage",
     "test:types": "npx tsc --noEmit",
     "test": "npm run test:types && npm run test:eslint && npm run test:jest"
   },
@@ -28,10 +29,15 @@
   "author": "Miroslav Martynov",
   "license": "ISC",
   "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-typescript": "^7.3.3",
     "@types/node": "^12.7.1",
     "@typescript-eslint/eslint-plugin": "^1.13.0",
     "@typescript-eslint/parser": "^1.13.0",
+    "babel-jest": "^24.9.0",
     "eslint": "^6.1.0",
+    "jest": "^24.9.0",
     "typedoc": "^0.15.0",
     "typescript": "^3.5.3"
   }
