@@ -4,10 +4,12 @@
   "description": "Tool which helps developers to manage color schemas in projects by gathering and representing all colors in project files.",
   "main": "lib/index.js",
   "scripts": {
+    "build": "npx tsc --outDir build",
     "docs": "npx typedoc --theme minimal --out ./docs ./src",
     "test:eslint": "npx eslint ./src --ext=js,ts",
     "test:jest": "npx jest",
-    "test": "npm run test:eslint && npm run test:jest"
+    "test:types": "npx tsc --noEmit",
+    "test": "npm run test:types && npm run test:eslint && npm run test:jest"
   },
   "keywords": [
     "colors",

@@ -5,7 +5,7 @@ import path = require("path");
 
 const colorRegexp: RegExp = /(#[A-F\d]{3}\b|#[A-F\d]{6}\b)|(rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?([, \.\d]+)?\))/gi; // eslint-disable-line
 const sassVariableRegexp = /(\$[\S\d]+)\b/gi;
-let colorMap: ColorMap;
+let colorMap: ColorMap; // TODO: Globall mutated variable!!!
 let fileCounter = 0;
 
 interface ColorMeta {
@@ -23,39 +23,67 @@ interface ColorData {
 
 type ColorMap = Map<string, ColorData>;
 
+interface SchemeData {
+  color: string;
+  variable: string;
+}
 
-function convertShortHEXtoLong(hex) {
-  var tmp = "";
+
+/**
+ * @param hex color in HEX format
+ * @return long HEX format or fallback to black if hex is not defined
+ * or to hex if it seems already to be in long format
+ */
+function convertShortHEXtoLong(hex?: string): string {
+  let result = "";
 
   if (hex && hex.length === 4) {
-    tmp = hex[0] + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+    result = hex[0] + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
   } else if (!hex) {
     return "#000000";
   } else {
-    tmp = hex;
+    result = hex;
   }
 
-  return tmp;
+  return result;
 }
 
-function getHEXValue(hex) {
-  var bytes = hex.slice(1);
-  var value = parseInt(bytes, 16);
+/**
+ * Retrieve number from HEXademical color _long_ format
+ * which could be useful for sorting
+ * @param hex color in _long_ HEX format
+ * @returns number from 0 to 16777215
+ */
+function getHEXValue(hex: string): number {
+  const bytes = hex.slice(1);
+  const value = parseInt(bytes, 16);
 
   return isNaN(value) ? 0 : value;
 }
 
-function rgb2hex(rgb){
-  rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+/**
+ * Convert RGB to HEX
+ * @param rgb color in RGB format
+ * @returns color in HEX format or empty string if color is not matching RGBA pattern
+ */
+function rgb2hex(rgb: string): string {
+  const rgbRegExp = /^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i;
+  const result = rgb.match(rgbRegExp);
 
-  return (rgb && rgb.length === 4) ? "#" +
-  ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
-  ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
-  ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : "";
+  return (result && rgb.length === 4) 
+    ? "#" +
+      ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+      ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
+      ("0" + parseInt(rgb[3],10).toString(16)).slice(-2)
+    : "";
 }
 
-function getColorIndex(color) {
-  var index, hex;
+/**
+ * Resolve color format and get it's value as natural numbers
+ * @param color in unknown format
+ */
+function getColorIndex(color: string): number {
+  let index: number, hex: string;
 
   if (color && color[0] === "#") {
     index = getHEXValue(color);
@@ -76,17 +104,17 @@ function getColorIndex(color) {
  * @param map Global mutable map
  */
 function addToMap(color: string, colorData: ColorMeta, map: ColorMap): ColorMap {
-  var normalizedColor = color.toLowerCase();
-  var longColor = convertShortHEXtoLong(normalizedColor);
+  const normalizedColor = color.toLowerCase();
+  const longColor = convertShortHEXtoLong(normalizedColor);
+  const data = map.get(longColor);
 
-  if (map.has(longColor)) {
-    const val: ColorData = map.get(longColor);
+  if (data && data.meta) {
 
-    val.meta.push(colorData);
-    val.index = getColorIndex(longColor);
-    map.set(longColor, val);
+    data.meta.push(colorData);
+    data.index = getColorIndex(longColor);
+    map.set(longColor, data);
   } else {
-    let val2 = {
+    let val2: ColorData = {
       meta: [],
       index: 0
     };
@@ -99,40 +127,44 @@ function addToMap(color: string, colorData: ColorMeta, map: ColorMap): ColorMap 
   return map;
 }
 
-function compareTwoColorIndex( colorA, colorB ) {
-  // console.log(`arA = ${arA}; arB = ${arB}`);
-  var indexA = colorMap.get(colorA);
-  var indexB = colorMap.get(colorB);
-
-  if (indexA && indexB) {
-    return (indexA.index - indexB.index) < 0;
-  } else {
-    return;
-  }
-}
-
 // /**
-//  * Compare two numeric values
-//  * @param a
-//  * @param b
-//  * @returns {boolean}
+//  * __DEPRECATED__ Use [[compareTwoNumbers]]
+//  * @param colorA in _long_ HEX format
+//  * @param colorB in _long_ HEX format
 //  */
-// function compareTwoNumbers( a, b ) {
-//   return (a - b) > 0;
+// function compareTwoColorIndex( colorA: string, colorB: string ): boolean {
+//   var indexA = colorMap.get(colorA);
+//   var indexB = colorMap.get(colorB);
+
+//   if (indexA && indexB) {
+//     return (indexA.index - indexB.index) < 0;
+//   } else {
+//     return;
+//   }
 // }
 
 /**
- * Swap tow elements in array
- * @param arr
- * @param posA
- * @param posB
+ * Compare two numeric values
+ * @param a number
+ * @param b
+ * @returns {boolean}
  */
-function swap( arr, posA, posB ) {
-  var temp = arr[posA];
-
-  arr[posA] = arr[posB];
-  arr[posB] = temp;
+function compareTwoNumbers( a: number, b: number ): boolean {
+  return (a - b) > 0;
 }
+
+// /**
+//  * Swap tow elements in array
+//  * @param arr
+//  * @param posA
+//  * @param posB
+//  */
+// function swap( arr, posA, posB ) {
+//   var temp = arr[posA];
+
+//   arr[posA] = arr[posB];
+//   arr[posB] = temp;
+// }
 
 
 // /**
@@ -157,24 +189,30 @@ function swap( arr, posA, posB ) {
 
 
 /**
- * Returns new sorted array using Insertion Sort Algorithm
- * @param arr
- * @returns {Array|number}
+ * Sort array of colors using Insertion Sort Algorithm
+ * @param colors unsorted array of color strings
+ * @param colorMap [[ColorMap]] with colors indexes
+ * @returns new sorted array
  */
-function insertionSortForColors( array ) {
-  // console.log(array);
-  var arr = array.slice();
+function insertionSortForColors( colors: string[], colorMap: ColorMap ): string[] {
 
-  for (var i = 1; i <= arr.length; i++) {
-    var currentPos = i;
+  const result: string[] = colors.slice();
 
-    while (currentPos > 0 && compareTwoColorIndex(arr[currentPos - 1], arr[currentPos])) {
-      swap(arr, currentPos, currentPos - 1);
+  for (let i = 1; i <= result.length; i++) {
+    let currentPos = i;
+    const colorA = colorMap.get(result[currentPos - 1]);
+    const colorB = colorMap.get(result[currentPos]);
+    const colorIndexA = colorA && colorA.index ? colorA.index : 0;
+    const colorIndexB = colorB && colorB.index ? colorB.index : 0;
+
+    while (currentPos > 0 && compareTwoNumbers(colorIndexA, colorIndexB)) {
+      // swap(result, currentPos, currentPos - 1);
+      [result[currentPos], result[currentPos - 1]] = [result[currentPos - 1], result[currentPos]]; // swap in ES6 syntax
       currentPos -=1;
     }
   }
 
-  return arr;
+  return result;
 }
 
 /**
@@ -187,7 +225,7 @@ function insertionSortForColors( array ) {
 function parseStylesheetsColors(data: string, filePath: string, map: ColorMap): string[] {
   const lines = data.split("\n");
   let result: string[] = [];
-  let test: RegExpExecArray;
+  let test: RegExpExecArray | null;
   let totalReadData = 0;
 
   for (let i = 0, len = lines.length; i < len; i++) {
@@ -219,12 +257,15 @@ function parseStylesheetsColors(data: string, filePath: string, map: ColorMap): 
 
 /**
  * Search for colors in color scheme and prepare data output for view
+ * Usually there is at least basic color scheme in project,
+ * for instance _colors.sass_ or _variables.sass_ contains a set of colors
+ * which was originally designed for the project
  * @return Array of objects { color: , variable: }
  */
-function parseColorSheme(data: string): Record<string, any>[] {
-  let result: Record<string, any>[] = [];
-  let test: RegExpExecArray;
-  let variable: RegExpExecArray;
+function parseColorSheme(data: string): SchemeData[] {
+  let result: SchemeData[] = [];
+  let test: RegExpExecArray | null;
+  let variable: RegExpExecArray | null;
   const lines: string[] = data.split("\n");
 
   for (var i = 0, len = lines.length; i < len; i++) {
@@ -269,7 +310,7 @@ function pathType(path: string): string | undefined {
  * @param path to
  * @param skip fullpath to the color scheme file _for example colors.sass with all color variables_
  */
-function processDir(path: string, skip: string) {
+function processDir(path: string, skip: string): void {
   let files: string[] = [];
 
   if (Array.isArray(path)) {
@@ -283,14 +324,27 @@ function processDir(path: string, skip: string) {
   }
 }
 
-function countAndPrintProcessedFiles(filePath, colors) {
+/**
+ * __warning__ Change global counter and log to console
+ * @param filePath current processing file's directory
+ * @param colors total number parsed colors in the file
+ */
+function countAndPrintProcessedFiles(filePath: string, colors: string[]): number {
   ++fileCounter;
+
   console.log(`${fileCounter}: ${filePath} — found ${colors.length} colors`);
 
   return fileCounter;
 }
 
-function processFile(filePath) {
+/**
+ * Task for file processing.
+ * * Read data from file
+ * * Parse and get colors
+ * * run another task [[countAndPrintProcessedFiles]]
+ * @param filePath path to particular file for being parsed
+ */
+function processFile(filePath: string): void {
   let data = fs.readFileSync(filePath, "utf-8");
   let colors = parseStylesheetsColors(data, filePath, colorMap);
 
@@ -298,12 +352,12 @@ function processFile(filePath) {
 }
 
 /**
- * Processes given files
- * @param files 
- * @param dir 
+ * Task for processing files list
+ * @param files array of file names
+ * @param dir path to the dir which contains the `files`
  * @param skip fullpath to the color scheme file _for example colors.sass with all color variables_
  */
-function main(files: string[], dir: string, skip: string) {
+function main(files: string[], dir: string, skip: string): void {
 
   for (let file of files) {
     let filePath = path.resolve(dir, file);
@@ -324,12 +378,15 @@ function main(files: string[], dir: string, skip: string) {
   }
 }
 
+/**
+ * Task for parsing and getting scheme data
+ * 
+ * @param schemeFilePath location of scheme file 
+ */
+function parseSchemeFile(schemeFilePath: string): SchemeData[] {
+  const data = fs.readFileSync(schemeFilePath, "utf-8");
 
-function handleScheme(filePath) {
-  var data = fs.readFileSync(filePath, "utf-8");
-  var scheme = parseColorSheme(data);
-
-  return scheme;
+  return parseColorSheme(data);
 }
 
 /**
@@ -337,7 +394,7 @@ function handleScheme(filePath) {
  * @param dir directory for colors scanning
  * @param skip fullpath to the color scheme file _for example colors.sass with all color variables_
  */
-function mainHandler(dir, skip: string): Map<string, Record<string, any>> {
+function mainHandler(dir: string, skip: string): ColorMap {
   colorMap = new Map();
 
   const start: Date = new Date();
@@ -361,23 +418,29 @@ function mainHandler(dir, skip: string): Map<string, Record<string, any>> {
 
 /**
  * Generates html markup for output in colors list
- * @param map
- * @returns {string}
+ * @param map [[ColorMap]]
+ * @returns html string
  */
-function generateMarkup(map: ColorMap) {
-  const keys: Iterator<string> = map.keys();
-  const sortedColors = insertionSortForColors(keys);
+function generateMarkup(map: ColorMap): string {
+  const colors: string[] = Array.from(map.keys());
+
+  const sortedColors = insertionSortForColors(colors, map);
   let html = "";
 
-  sortedColors.forEach((val)=>{
+  sortedColors.forEach((val): void => {
     let title = "";
-    let index = map.get(val).index;
+    const data = map.get(val)
+    let index = data ? data.index : 0;
     let appearsCounter = 0;
+    const meta = data && data.meta;
 
-    map.get(val).meta.forEach((meta)=>{
-      appearsCounter++;
-      title += `${meta.xPath}\n`;
-    });
+    if (meta) {
+      meta.forEach((meta): void => {
+        appearsCounter++;
+        title += `${meta.xPath}\n`;
+      });
+    }
+
     html += `
       <div class="color"
            style="background: ${val}"
@@ -398,5 +461,5 @@ module.exports = {
   colorIndex: getColorIndex,
   sort: insertionSortForColors,
   markup: generateMarkup,
-  scheme: handleScheme,
+  scheme: parseSchemeFile,
 };
