@@ -11,10 +11,10 @@
     "build": "npx tsc --outDir build",
     "docs": "npx typedoc --theme minimal --out ./docs ./src",
     "test:eslint": "npx eslint ./src --ext=js,ts",
-    "test:jest": "npx jest",
     "test:jest:coverage": "npx jest --coverage",
+    "test:jest": "npx jest",
     "test:types": "npx tsc --noEmit",
-    "test": "npm run test:types && npm run test:eslint && npm run test:jest"
+    "tests": "npm run test:types && npm run test:eslint && npm run test:jest"
   },
   "keywords": [
     "colors",

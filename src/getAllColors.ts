@@ -33,7 +33,7 @@ interface SchemeData {
  * Resolve color format and get it's value as natural numbers
  * @param color in unknown format
  */
-function getColorIndex(color: string): number {
+export function getColorIndex(color: string): number {
   let index: number, hex: string;
 
   if (color && color[0] === "#") {
@@ -91,21 +91,21 @@ function compareTwoNumbers( a: number, b: number ): boolean {
 /**
  * Sort array of colors using Insertion Sort Algorithm
  * @param colors unsorted array of color strings
- * @param colorMap [[ColorMap]] with colors indexes
  * @returns new sorted array
  */
-function insertionSortForColors( colors: string[], colorMap: ColorMap ): string[] {
+export function insertionSortForColors( colors: string[] ): string[] {
 
   const result: string[] = colors.slice();
 
-  for (let i = 1; i <= result.length; i++) {
+  for (let i = 1; i < result.length; i++) {
     let currentPos = i;
-    const colorA = colorMap.get(result[currentPos - 1]);
-    const colorB = colorMap.get(result[currentPos]);
-    const colorIndexA = colorA && colorA.index ? colorA.index : 0;
-    const colorIndexB = colorB && colorB.index ? colorB.index : 0;
 
-    while (currentPos > 0 && compareTwoNumbers(colorIndexA, colorIndexB)) {
+    while (
+      currentPos > 0
+      && compareTwoNumbers(
+        getColorIndex(result[currentPos - 1]),
+        getColorIndex(result[currentPos]))
+    ) {
       // swap(result, currentPos, currentPos - 1);
       [result[currentPos], result[currentPos - 1]] = [result[currentPos - 1], result[currentPos]]; // swap in ES6 syntax
       currentPos -=1;
@@ -328,7 +328,7 @@ function mainHandler(dir: string, skip: string): ColorMap {
 function generateMarkup(map: ColorMap): string {
   const colors: string[] = Array.from(map.keys());
 
-  const sortedColors = insertionSortForColors(colors, map);
+  const sortedColors = insertionSortForColors(colors);
   let html = "";
 
   sortedColors.forEach((val): void => {
