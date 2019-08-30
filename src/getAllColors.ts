@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { getHEXValue, convertShortHEXtoLong, rgb2hex } from "./hexHelpers";
 
+// FIXME: colorRegexp doesn't count minified strings, for example here `$linkColor: #4297da;$linkColor: #4297da;`the first part will be skipped
 const colorRegexp: RegExp = /(#[A-F\d]{3}\b|#[A-F\d]{6}\b)|(rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?([, \.\d]+)?\))/gi; // eslint-disable-line
 const sassVariableRegexp = /(\$[\S\d]+)\b/gi;
 let colorMap: ColorMap; // TODO: Globall mutated variable!!!
@@ -145,6 +146,7 @@ function parseStylesheetsColors(data: string, filePath: string, map: ColorMap): 
 
       addToMap(test[0], colorData, map);
       result.push(test[0]);
+      test = colorRegexp.exec(lines[i]);
     }
   }
 
@@ -179,7 +181,10 @@ function parseColorSheme(data: string): SchemeData[] {
           color: test[0],
           variable: variable[0]
         });
+        variable = sassVariableRegexp.exec(lines[i]);
       }
+
+      test = colorRegexp.exec(lines[i]);
     }
   }
 
