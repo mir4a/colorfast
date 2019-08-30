@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "description": "Tool which helps developers to manage color schemas in projects by gathering and representing all colors in project files.",
   "main": "buld/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mir4a/colorfast.git"
+  },
   "scripts": {
     "build": "npx tsc --outDir build",
     "docs": "npx typedoc --theme minimal --out ./docs ./src",
