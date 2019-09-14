@@ -1,2 +1,12 @@
 coverage
 docs
+src
+tests
+
+colorfast*.jpg
+
+jest.config.js
+tsconfig.json
+babel.config.js
+.eslintrc.js
+.editorconfig
