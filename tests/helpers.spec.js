@@ -1,7 +1,17 @@
 import {
-  insertionSortForColors,
+  convertShortHEXtoLong,
   getColorIndex,
-} from "../src/getAllColors";
+  getHEXValue,
+  rgb2hex,
+} from "../src/helpers";
+
+describe('HEX helpers', () => {
+  describe("convertShortHEXtoLong", () => {
+    test("fallback to black", () => {
+      expect(convertShortHEXtoLong()).toBe("#000000");
+    })
+  });
+});
 
 describe("Main helpers", () => {
   describe("getColorIndex", () => {
@@ -18,11 +28,3 @@ describe("Main helpers", () => {
   });
 });
 
-describe("Main algorithms", () => {
-  test("insertionSortForColors", () => {
-    const unsortedColors = ["#fff", "rgba(0, 0, 0, 0.3)"];
-    const sortedColors = ["rgba(0, 0, 0, 0.3)", "#fff"];
-
-    expect(insertionSortForColors(unsortedColors)).toStrictEqual(sortedColors);
-  });
-});

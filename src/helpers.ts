@@ -47,3 +47,22 @@ export function rgb2hex(rgb: string): string {
     ("0" + parseInt(rgb[3], 10).toString(16)).slice(-2)
     : "";
 }
+
+/**
+ * Resolve color format and get it's value as natural numbers
+ * @param color in unknown format
+ */
+export function getColorIndex(color: string): number {
+  let index: number, hex: string;
+
+  if (color && color[0] === "#") {
+    index = getHEXValue(color);
+  } else if (!color) {
+    return 0;
+  } else {
+    hex = rgb2hex(color);
+    index = getHEXValue(hex);
+  }
+
+  return index;
+}

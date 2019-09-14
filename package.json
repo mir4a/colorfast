@@ -1,14 +1,32 @@
 {
   "name": "colorfast",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Tool which helps developers to manage color schemas in projects by gathering and representing all colors in project files.",
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-typescript": "^7.3.3",
+    "@types/node": "^12.7.1",
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
+    "babel-jest": "^24.9.0",
+    "eslint": "^6.1.0",
+    "jest": "^24.9.0",
+    "typedoc": "^0.15.0",
+    "typescript": "^3.5.3"
+  },
+  "dependencies": {
+    "minimist": "^1.2.0"
+  },
   "main": "buld/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/mir4a/colorfast.git"
   },
+  "bin": "./bin/colorfast.js",
   "scripts": {
-    "build": "npx tsc --outDir build",
+    "copy:styles": "cp ./src/templates/styles.css ./build/templates/styles.css",
+    "build": "npx tsc --outDir build && npm run copy:styles",
     "docs": "npx typedoc --theme minimal --out ./docs ./src",
     "test:eslint": "npx eslint ./src --ext=js,ts",
     "test:jest:coverage": "npx jest --coverage",
@@ -30,19 +48,6 @@
     "css",
     "algorithms"
   ],
-  "author": "Miroslav Martynov",
-  "license": "ISC",
-  "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "@babel/preset-typescript": "^7.3.3",
-    "@types/node": "^12.7.1",
-    "@typescript-eslint/eslint-plugin": "^1.13.0",
-    "@typescript-eslint/parser": "^1.13.0",
-    "babel-jest": "^24.9.0",
-    "eslint": "^6.1.0",
-    "jest": "^24.9.0",
-    "typedoc": "^0.15.0",
-    "typescript": "^3.5.3"
-  }
+  "author": "Miroslav Martynov <marty.mircha@gmail.com> (http://mir4a.pp.ua)",
+  "license": "ISC"
 }

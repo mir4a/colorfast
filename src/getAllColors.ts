@@ -1,52 +1,12 @@
 import fs from "fs";
 import path from "path";
-import { getHEXValue, convertShortHEXtoLong, rgb2hex } from "./hexHelpers";
+import { getColorIndex, convertShortHEXtoLong } from "./helpers";
 
 // FIXME: colorRegexp doesn't count minified strings, for example here `$linkColor: #4297da;$linkColor: #4297da;`the first part will be skipped
 const colorRegexp: RegExp = /(#[A-F\d]{3}\b|#[A-F\d]{6}\b)|(rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?([, \.\d]+)?\))/gi; // eslint-disable-line
 const sassVariableRegexp = /(\$[\S\d]+)\b/gi;
 let colorMap: ColorMap; // TODO: Globall mutated variable!!!
 let fileCounter = 0;
-
-interface ColorMeta {
-  alpha?: number;
-  filePath: string;
-  originalValue: string;
-  startPos: number;
-  xPath: string;
-}
-
-interface ColorData {
-  index: number;
-  meta: ColorMeta[];
-}
-
-type ColorMap = Map<string, ColorData>;
-
-interface SchemeData {
-  color: string;
-  variable: string;
-}
-
-
-/**
- * Resolve color format and get it's value as natural numbers
- * @param color in unknown format
- */
-export function getColorIndex(color: string): number {
-  let index: number, hex: string;
-
-  if (color && color[0] === "#") {
-    index = getHEXValue(color);
-  } else if (!color) {
-    return 0;
-  } else {
-    hex = rgb2hex(color);
-    index = getHEXValue(hex);
-  }
-
-  return index;
-}
 
 /**
  * Mutate global map of colors
@@ -76,43 +36,6 @@ function addToMap(color: string, colorData: ColorMeta, map: ColorMap): ColorMap 
   }
 
   return map;
-}
-
-/**
- * Compare two numeric values
- * @param a number
- * @param b
- * @returns {boolean}
- */
-function compareTwoNumbers( a: number, b: number ): boolean {
-  return (a - b) > 0;
-}
-
-/**
- * Sort array of colors using Insertion Sort Algorithm
- * @param colors unsorted array of color strings
- * @returns new sorted array
- */
-export function insertionSortForColors( colors: string[] ): string[] {
-
-  const result: string[] = colors.slice();
-
-  for (let i = 1; i < result.length; i++) {
-    let currentPos = i;
-
-    while (
-      currentPos > 0
-      && compareTwoNumbers(
-        getColorIndex(result[currentPos - 1]),
-        getColorIndex(result[currentPos]))
-    ) {
-      // swap(result, currentPos, currentPos - 1);
-      [result[currentPos], result[currentPos - 1]] = [result[currentPos - 1], result[currentPos]]; // swap in ES6 syntax
-      currentPos -=1;
-    }
-  }
-
-  return result;
 }
 
 /**
@@ -287,7 +210,7 @@ function main(files: string[], dir: string, skip: string): void {
  * 
  * @param schemeFilePath location of scheme file 
  */
-function parseSchemeFile(schemeFilePath: string): SchemeData[] {
+export function parseSchemeFile(schemeFilePath: string): SchemeData[] {
   const data = fs.readFileSync(schemeFilePath, "utf-8");
 
   return parseColorSheme(data);
@@ -298,7 +221,7 @@ function parseSchemeFile(schemeFilePath: string): SchemeData[] {
  * @param dir directory for colors scanning
  * @param skip fullpath to the color scheme file _for example colors.sass with all color variables_
  */
-function mainHandler(dir: string, skip: string): ColorMap {
+export default function gather(dir: string, skip: string): ColorMap {
   colorMap = new Map();
 
   const start: Date = new Date();
@@ -319,51 +242,3 @@ function mainHandler(dir: string, skip: string): ColorMap {
 
   return colorMap;
 }
-
-/**
- * Generates html markup for output in colors list
- * @param map [[ColorMap]]
- * @returns html string
- */
-function generateMarkup(map: ColorMap): string {
-  const colors: string[] = Array.from(map.keys());
-
-  const sortedColors = insertionSortForColors(colors);
-  let html = "";
-
-  sortedColors.forEach((val): void => {
-    let title = "";
-    const data = map.get(val);
-    let index = data ? data.index : 0;
-    let appearsCounter = 0;
-    const meta = data && data.meta;
-
-    if (meta) {
-      meta.forEach((meta): void => {
-        appearsCounter++;
-        title += `${meta.xPath}\n`;
-      });
-    }
-
-    html += `
-      <div class="color"
-           style="background: ${val}"
-           title="${title}"
-           data-color="${val}">
-        <b>${val}</b>
-        <i>${index}</i>
-        <i class="counter">${appearsCounter}</i>
-      </div>
-    `;
-  });
-
-  return html;
-}
-
-export default {
-  gather: mainHandler,
-  colorIndex: getColorIndex,
-  sort: insertionSortForColors,
-  markup: generateMarkup,
-  scheme: parseSchemeFile,
-};

@@ -1,0 +1,61 @@
+body {
+  padding: 0;
+  margin: 0;
+  font-size: 0;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;  
+  background-image: linear-gradient(45deg, #000000 25%, transparent 25%), linear-gradient(-45deg, #000000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000000 75%), linear-gradient(-45deg, transparent 75%, #000000 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+.color b,
+.color i {
+  pointer-events: none;
+}
+
+.color {
+  font: italic 10px/1 arial;
+  color: #333;
+  text-align: center;
+  display: flex;
+  min-width: 200px;
+  height: 40px;
+  text-shadow: 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff;
+  flex: auto;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: space-around;
+  align-content: center;
+}
+
+.color:hover {
+  transform: scale(1.05);
+}
+
+.xray-link:visited {
+  color: #777;
+}
+
+#modal {
+  font-size: 14px;
+  display: none;
+  position: fixed;
+  padding: 20px;
+  top: 25%;
+  left: 15%;
+  right: 15%;
+  bottom: 25%;
+  background: rgba(250,250,250,0.95);
+  overflow: auto;
+  text-shadow: 0 1px 2px #fff, 0 -1px 2px #fff;
+}
+
+#close {
+  position: absolute;
+  right: 5px;
+  top: 2px;
+}
