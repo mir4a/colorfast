@@ -26,6 +26,8 @@ npx colorfast --input ./path/to/styles/directory --scheme ./path/to/sass/variabl
 
 ## API
 
+> See full documentation [here](http://www.mir4a.pp.ua/colorfast/)
+
 ### Gather colors info
 
 Default function is gathering colors info from the given styles path and returns ColorMap
