@@ -6,9 +6,6 @@ logs
 *.log
 npm-debug.log*
 
-# Generated Docs
-docs
-
 # Coverage directory used by tools like istanbul
 coverage
 
