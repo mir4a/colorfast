@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getColorIndex, convertShortHEXtoLong } from "./helpers";
+import { getColorIndex, fullHEX } from "./helpers";
 
 // FIXME: colorRegexp doesn't count minified strings, for example here `$linkColor: #4297da;$linkColor: #4297da;`the first part will be skipped
 const colorRegexp: RegExp = /(#[A-F\d]{3}\b|#[A-F\d]{6}\b)|(rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?([, \.\d]+)?\))/gi; // eslint-disable-line
@@ -16,7 +16,7 @@ let fileCounter = 0;
  */
 function addToMap(color: string, colorData: ColorMeta, map: ColorMap): ColorMap {
   const normalizedColor = color.toLowerCase();
-  const longColor = convertShortHEXtoLong(normalizedColor);
+  const longColor = fullHEX(normalizedColor);
   const data = map.get(longColor);
 
   if (data && data.meta) {

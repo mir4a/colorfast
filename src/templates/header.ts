@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export function getStyles() {
+export function getStyles(): string {
   return fs.readFileSync(path.join(__dirname, "./styles.css"), "utf-8");
 }
 

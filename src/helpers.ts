@@ -4,7 +4,7 @@
  * @return long HEX format or fallback to black if hex is not defined
  * or to hex if it seems already to be in long format
  */
-export function convertShortHEXtoLong(hex?: string): string {
+export function fullHEX(hex?: string): string {
   let result = "";
 
   if (hex && hex.length === 4) {
@@ -36,7 +36,7 @@ export function getHEXValue(hex: string): number {
  * @param rgb color in RGB format
  * @returns color in HEX format or empty string if color is not matching RGBA pattern
  */
-export function rgb2hex(rgb: string): string {
+export function convertRGBtoHEX(rgb: string): string {
   const rgbRegExp = /^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i;
   const result = rgb.match(rgbRegExp);
 
@@ -60,7 +60,7 @@ export function getColorIndex(color: string): number {
   } else if (!color) {
     return 0;
   } else {
-    hex = rgb2hex(color);
+    hex = convertRGBtoHEX(color);
     index = getHEXValue(hex);
   }
 

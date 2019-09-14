@@ -1,14 +1,14 @@
 import {
-  convertShortHEXtoLong,
+  fullHEX,
   getColorIndex,
   getHEXValue,
-  rgb2hex,
+  convertRGBtoHEX,
 } from "../src/helpers";
 
 describe('HEX helpers', () => {
   describe("convertShortHEXtoLong", () => {
     test("fallback to black", () => {
-      expect(convertShortHEXtoLong()).toBe("#000000");
+      expect(fullHEX()).toBe("#000000");
     })
   });
 });
