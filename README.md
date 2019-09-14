@@ -8,6 +8,8 @@ Once I saw a project which had clear and strict color schema of about 16 colors,
 but it turned out that project files contain over 200 variations of origin schema.
 This is why _Colorfast_ was made.
 
+![colorfast](https://raw.githubusercontent.com/mir4a/colorfast/bc73c8e627be0994265128b7987896fb88a6d891/colorfast-v1.0.0.jpg)
+
 # Installation
 
 ```bash
