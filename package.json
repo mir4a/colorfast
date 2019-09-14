@@ -48,6 +48,7 @@
     "css",
     "algorithms"
   ],
-  "author": "Miroslav Martynov <marty.mircha@gmail.com> (http://mir4a.pp.ua)",
-  "license": "ISC"
+  "author": "Miroslav Martynov <marty.mircha@gmail.com> (https://mir4a.pp.ua)",
+  "license": "ISC",
+  "homepage": "https://mir4a.pp.ua/colorfast/"
 }
